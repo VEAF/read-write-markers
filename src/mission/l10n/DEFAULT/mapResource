@@ -1,0 +1,10 @@
+mapResource = {
+    ["ResKey_Action_382"] = "missionConfig.lua",
+    ["ResKey_Action_473"] = "veaf.lua",
+    ["ResKey_Action_480"] = "veafMarkers.lua",
+    ["ResKey_Action_483"] = "veafRadio.lua",
+    ["ResKey_Action_484"] = "veafSecurity.lua",
+    ["ResKey_Action_621"] = "JSON.lua",
+    ["ResKey_Action_622"] = "read-write-markers.lua",
+    ["ResKey_Action_660"] = "mist.lua",
+} -- end of mapResource
