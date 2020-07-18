@@ -1,12 +1,12 @@
 {
   "name": "read-write-markers",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "read-write-markers",
   "main": "",
   "author": "Zip",
   "license": "MIT",
   "repository": {},
   "dependencies": {
-    "veaf-mission-creation-tools": "^2.6.2"
+    "veaf-mission-creation-tools": "^2.12.1"
   }
 }

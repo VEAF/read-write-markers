@@ -12,10 +12,10 @@ markers = {}
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Identifier. All output in DCS.log will start with this.
-markers.Id = "MARKERS - "
+markers.Id = "RW-MARKERS - "
 
 --- Version.
-markers.Version = "0.0.1"
+markers.Version = "1.1.0"
 
 -- trace level, specific to this module
 markers.Trace = true
@@ -56,6 +56,10 @@ function markers.logError(message)
   veaf.logError(markers.Id .. message)
 end
 
+function markers.logWarning(message)
+  veaf.logWarning(markers.Id .. message)
+end
+
 function markers.logInfo(message)
   veaf.logInfo(markers.Id .. message)
 end
@@ -79,6 +83,13 @@ function markers.onEventMarkChange(eventPos, event)
   -- store the new marker data in the marker dictionary
   markers.logTrace(string.format("event=%s",veaf.p(event)))
   markers.userMarkers[event.idx] = { name=event.text, position=event.pos }
+end
+
+--- Function executed when a mark has been removed. This happens when text is entered or changed.
+function markers.onEventMarkRemove(eventPos, event)
+  -- remove the marker from the marker dictionary
+  markers.logTrace(string.format("event=%s",veaf.p(event)))
+  markers.userMarkers[event.idx] = nil
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -346,7 +357,9 @@ function markers.GetInformations(unitName)
     end
   end
   for _, value in pairs(markers.userMarkers) do
-    nbUserMarkers = nbUserMarkers + 1
+    if value then 
+      nbUserMarkers = nbUserMarkers + 1
+    end
   end
   local msg = string.format("Loaded %d points of interest in %d groups, and user created %d new markers", nbMarkers, nbGroups, nbUserMarkers)
   trigger.action.outText(msg, 30)
@@ -405,7 +418,7 @@ function readMarkersInJsonFile(filePath)
     data=f:read("*all")
     f:close()
   else
-    markers.logError(string.format("Could not load markers from file [%s]. File might not exist.", tostring(filePath)))
+    markers.logWarning(string.format("Could not load markers from file [%s]. File might not exist.", tostring(filePath)))
     return nil
   end
   
@@ -414,7 +427,7 @@ function readMarkersInJsonFile(filePath)
   -- convert the JSON data
   local luaData = JSON:decode(data)
   if not luaData then
-    markers.logError(string.format("Could not interpret JSON from file [%s].", tostring(filePath)))
+    markers.logWarning(string.format("Could not interpret JSON from file [%s].", tostring(filePath)))
     return nil
   end
   
@@ -457,18 +470,20 @@ function saveMarkersToJsonFile(fileOutPath)
   local luaData = {}
   luaData.savedPoints = {}
   for iMarker, marker in pairs(markers.userMarkers) do
-    markers.logTrace(string.format("iMarker = %s",veaf.p(iMarker)))
-    markers.logTrace(string.format("marker = %s",veaf.p(marker)))
-    local point = { name = marker.name}
-    point.lat, point.lon = coord.LOtoLL(marker.position)
-    table.insert(luaData.savedPoints, point)
+    if marker then
+      markers.logTrace(string.format("iMarker = %s",veaf.p(iMarker)))
+      markers.logTrace(string.format("marker = %s",veaf.p(marker)))
+      local point = { name = marker.name}
+      point.lat, point.lon = coord.LOtoLL(marker.position)
+      table.insert(luaData.savedPoints, point)
+    end
   end
   markers.logTrace(string.format("processed data : %s",veaf.p(luaData)))
 
   -- convert the data into JSON
   data = JSON:encode_pretty(luaData)  
   if not data then
-    markers.logError(string.format("Could not convert data back to JSON."))
+    markers.logWarning(string.format("Could not convert data back to JSON."))
     return nil
   end
 
@@ -479,7 +494,7 @@ function saveMarkersToJsonFile(fileOutPath)
     f:close()
     markers.logTrace(string.format("saved JSON in file [%s]",tostring(fileOutPath)))
   else
-    markers.logError(string.format("Could not save markers to file [%s].", tostring(fileOutPath)))
+    markers.logWarning(string.format("Could not save markers to file [%s].", tostring(fileOutPath)))
     return nil
   end
   
@@ -487,6 +502,8 @@ function saveMarkersToJsonFile(fileOutPath)
 end
 
 function markers.initialize()
+  markers.logInfo(string.format("Loading version %s", markers.Version))
+
   local veafSanitized_lfs = veafSanitized_lfs
   if not veafSanitized_lfs then veafSanitized_lfs = lfs end
   
@@ -507,4 +524,5 @@ function markers.initialize()
   markers.buildRadioMenu()
   markers.LoadMarkers()
   veafMarkers.registerEventHandler(veafMarkers.MarkerChange, markers.onEventMarkChange)
+  veafMarkers.registerEventHandler(veafMarkers.MarkerRemove, markers.onEventMarkRemove)
 end

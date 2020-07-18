@@ -1,5 +1,5 @@
 @echo off
-set MISSION_NAME=read-write-markers
+set MISSION_NAME=OverlordBotAirfieldMapper
 echo.
 echo ----------------------------------------
 echo building %MISSION_NAME%
